@@ -1,0 +1,22 @@
+# Makefile for the command-line 'csub' tool.
+
+all: csub.exe
+
+csub: csub.exe
+	-del /q csub.obj
+
+debug: csub.cpp
+        cl -Zi -MD csub.cpp
+
+csub.exe: csub.cpp
+	cl -Ox -G5F -MD csub.cpp
+
+clean:
+	-del >nul 2>&1 /q csub.obj
+	-del >nul 2>&1 /q *.ilk
+	-del >nul 2>&1 /q *.pdb
+	-del >nul 2>&1 /q *.mdp
+	-del >nul 2>&1 /q *.opt
+
+clobber: clean
+	-del >nul 2>&1 /q csub.exe
