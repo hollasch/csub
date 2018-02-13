@@ -5,7 +5,7 @@
 
 
 char usage[] =
-"\ncsub / 1997-June-05 / Steve Hollasch\n\n"
+"\ncsub v1.0.0 / https://github.com/hollasch/csub / Steve Hollasch\n\n"
 "csub:  Perform command-substitution on a given command.\n"
 "usage: csub <command> `<expr>` <string> ... `<expr>` <string> ...\n"
 "\n";
