@@ -22,7 +22,7 @@ class String
         end = buff;
     }
 
-    String& Append (char *string, int len)
+    String& Append (const char *string, size_t len)
     {
         while ((end - buff + len) >= buff_size)
         {
@@ -46,13 +46,13 @@ class String
         return *this;
     }
 
-    String& operator+= (char *string)
+    String& operator+= (const char *string)
     {   return Append (string, strlen(string));
     }
 
-    int Length (void) { return end - buff; }
+    size_t Length (void) { return end - buff; }
 
-    void Trim (char *trim)
+    void Trim (const char *trim)
     {
         while (end > buff)
         {
@@ -91,7 +91,7 @@ int main (int argc, char *argv[])
 
     int argstart = 1;
 
-    if (0 == stricmp (argv[1], "-d"))
+    if (0 == _stricmp (argv[1], "-d"))
     {   debug = true;
         argstart = 2;
     }
@@ -101,7 +101,7 @@ int main (int argc, char *argv[])
 
     String command;
 
-    int argslen = 0;
+    size_t argslen = 0;
 
     int i;
     for (i=argstart;  i < argc;  ++i)
@@ -109,11 +109,11 @@ int main (int argc, char *argv[])
 
     char *cmdline = new char [argslen];
 
-    strcpy (cmdline, argv[argstart]);
+    strcpy_s (cmdline, argslen, argv[argstart]);
 
     for (i=argstart+1;  i < argc;  ++i)
-    {   strcat (cmdline, " ");
-        strcat (cmdline, argv[i]);
+    {   strcat_s (cmdline, argslen, " ");
+        strcat_s (cmdline, argslen, argv[i]);
     }
 
     char *lineptr = cmdline;
@@ -192,7 +192,7 @@ int main (int argc, char *argv[])
     }
 
     if (debug)
-    {   printf ("Resulting command is %d characters.\n", command.Length());
+    {   printf ("Resulting command is %zd characters.\n", command.Length());
         printf ("%s\n", command.Value());
     }
 
