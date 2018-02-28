@@ -1,2 +1,5 @@
-csub.exe
-csub.obj
+# Git Ignore File for csub
+
+.vs/
+out/
+*.vcxproj.user
