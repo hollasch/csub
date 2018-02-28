@@ -11,26 +11,22 @@ char usage[] =
 "\n";
 
 
-class String
-{
+class String {
   public:
 
-    String (void)
-    {
+    String (void) {
         buff = new char [blocksize];
         buff_size = blocksize;
         end = buff;
     }
 
-    String& Append (const char *string, size_t len)
-    {
-        while ((end - buff + len) >= buff_size)
-        {
+    String& Append (const char *string, size_t len) {
+        while ((end - buff + len) >= buff_size) {
             buff_size += blocksize;
             char *newbuff = new char [buff_size];
 
-            if (!newbuff)
-            {   fprintf (stderr, "csub: Out of memory.\n");
+            if (!newbuff) {
+                fprintf (stderr, "csub: Out of memory.\n");
                 exit (1);
             }
 
@@ -46,16 +42,14 @@ class String
         return *this;
     }
 
-    String& operator+= (const char *string)
-    {   return Append (string, strlen(string));
+    String& operator+= (const char *string) {
+        return Append (string, strlen(string));
     }
 
     size_t Length (void) { return end - buff; }
 
-    void Trim (const char *trim)
-    {
-        while (end > buff)
-        {
+    void Trim (const char *trim) {
+        while (end > buff) {
             if (0 == strspn (end-1, trim))
                 break;
             *--end = 0;
@@ -84,15 +78,15 @@ Main Routine
 
 int main (int argc, char *argv[])
 {
-    if (argc < 2)
-    {   fprintf (stderr, usage);
+    if (argc < 2) {
+        fprintf (stderr, usage);
         return 0;
     }
 
     int argstart = 1;
 
-    if (0 == _stricmp (argv[1], "-d"))
-    {   debug = true;
+    if (0 == _stricmp (argv[1], "-d")) {
+        debug = true;
         argstart = 2;
     }
 
@@ -111,15 +105,14 @@ int main (int argc, char *argv[])
 
     strcpy_s (cmdline, argslen, argv[argstart]);
 
-    for (i=argstart+1;  i < argc;  ++i)
-    {   strcat_s (cmdline, argslen, " ");
+    for (i=argstart+1;  i < argc;  ++i) {
+        strcat_s (cmdline, argslen, " ");
         strcat_s (cmdline, argslen, argv[i]);
     }
 
     char *lineptr = cmdline;
 
-    while (*lineptr)
-    {
+    while (*lineptr) {
         // Seek to next backquote.
 
         char *nextexpr = strchr (lineptr, '`');
@@ -127,16 +120,16 @@ int main (int argc, char *argv[])
         // If no more backquote expressions, add the remainder of the command
         // and break out.
 
-        if (!nextexpr)
-        {   command += lineptr;
+        if (!nextexpr) {
+            command += lineptr;
             break;
         }
 
         // If the backquote occurs farther ahead in the command string, copy
         // the characters leading up to it.
 
-        if (nextexpr != lineptr)
-        {   command.Append (lineptr, nextexpr - lineptr);
+        if (nextexpr != lineptr) {
+            command.Append (lineptr, nextexpr - lineptr);
         }
 
         // Set lineptr to the closing backquote.
@@ -145,19 +138,17 @@ int main (int argc, char *argv[])
 
         // If there's no matching backquote, then error.
 
-        if (!lineptr)
-        {   fprintf (stderr, "Error:  Mismatched ` quotes.\n");
+        if (!lineptr) {
+            fprintf (stderr, "Error:  Mismatched ` quotes.\n");
             return 1;
         }
 
         // If there are two backquotes in a row, then insert a true backquote,
         // otherwise insert the value of the evaluated expression.
 
-        if (1 == (lineptr - nextexpr))
-        {   command += "`";
-        }
-        else
-        {
+        if (1 == (lineptr - nextexpr)) {
+            command += "`";
+        } else {
             // At this point, lineptr points to the closing backquote.
             // Evaluate the expression between nextexpr and lineptr.
 
@@ -165,14 +156,13 @@ int main (int argc, char *argv[])
 
             FILE *expr = _popen (++nextexpr, "rt");
 
-            if (!expr)
-            {   fprintf (stderr,
+            if (!expr) {
+                fprintf (stderr,
                         "Error:  Couldn't open pipe for \"%s\".", nextexpr);
                 return errno;
             }
 
-            while (!feof(expr))
-            {
+            while (!feof(expr)) {
                 char inbuff [8<<10];
 
                 if (!fgets (inbuff, sizeof(inbuff), expr))
@@ -191,8 +181,8 @@ int main (int argc, char *argv[])
         ++lineptr;
     }
 
-    if (debug)
-    {   printf ("Resulting command is %zd characters.\n", command.Length());
+    if (debug) {
+        printf ("Resulting command is %zd characters.\n", command.Length());
         printf ("%s\n", command.Value());
     }
 
