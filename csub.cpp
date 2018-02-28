@@ -20,7 +20,7 @@ class String {
         end = buff;
     }
 
-    String& Append (const char* string, size_t len) {
+    String& append (const char* string, size_t len) {
         while ((end - buff + len) >= buff_size) {
             buff_size += blocksize;
             char* newbuff = new char [buff_size];
@@ -43,20 +43,20 @@ class String {
     }
 
     String& operator+= (const char* string) {
-        return Append (string, strlen(string));
+        return append (string, strlen(string));
     }
 
-    size_t Length (void) { return end - buff; }
+    size_t length (void) { return end - buff; }
 
-    void Trim (const char* trim) {
+    void trim (const char* trimStr) {
         while (end > buff) {
-            if (0 == strspn (end-1, trim))
+            if (0 == strspn (end-1, trimStr))
                 break;
             *--end = 0;
         }
     }
 
-    char* Value (void) { return buff; }
+    char* value (void) { return buff; }
 
   private:
 
@@ -125,7 +125,7 @@ int main (int argc, char* argv[])
         // up to it.
 
         if (nextexpr != lineptr) {
-            command.Append (lineptr, nextexpr - lineptr);
+            command.append (lineptr, nextexpr - lineptr);
         }
 
         // Set lineptr to the closing backquote.
@@ -165,22 +165,22 @@ int main (int argc, char* argv[])
                     break;
 
                 command += inbuff;
-                command.Trim ("\r\n");
+                command.trim ("\r\n");
                 command += " ";
             }
 
             _pclose (expr);
 
-            command.Trim (" ");
+            command.trim (" ");
         }
 
         ++lineptr;
     }
 
     if (debug) {
-        printf ("Resulting command is %zd characters.\n", command.Length());
-        printf ("%s\n", command.Value());
+        printf ("Resulting command is %zd characters.\n", command.length());
+        printf ("%s\n", command.value());
     }
 
-    return system (command.Value());
+    return system (command.value());
 }
