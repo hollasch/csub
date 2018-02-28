@@ -15,25 +15,25 @@ class String {
   public:
 
     String (void) {
-        buff = new char [blocksize];
-        buff_size = blocksize;
+        buff = new char [blockSize];
+        buffSize = blockSize;
         end = buff;
     }
 
     String& append (const char* string, size_t len) {
-        while ((end - buff + len) >= buff_size) {
-            buff_size += blocksize;
-            char* newbuff = new char [buff_size];
+        while ((end - buff + len) >= buffSize) {
+            buffSize += blockSize;
+            char* newBuff = new char [buffSize];
 
-            if (!newbuff) {
+            if (!newBuff) {
                 fprintf (stderr, "csub: Out of memory.\n");
                 exit (1);
             }
 
-            memcpy (newbuff, buff, end-buff+1);
-            end = newbuff + (end-buff);
+            memcpy (newBuff, buff, end-buff+1);
+            end = newBuff + (end-buff);
             delete buff;
-            buff = newbuff;
+            buff = newBuff;
         }
 
         memcpy (end, string, len+1);
@@ -60,10 +60,10 @@ class String {
 
   private:
 
-    const int blocksize = 8 << 10;
+    const int blockSize = 8 << 10;
 
     char*         buff;
-    unsigned int  buff_size;
+    unsigned int  buffSize;
     char*         end;
 };
 
@@ -82,59 +82,59 @@ int main (int argc, char* argv[])
         return 0;
     }
 
-    int argstart = 1;
+    int argStart = 1;
 
     if (0 == _stricmp (argv[1], "-d")) {
         debug = true;
-        argstart = 2;
+        argStart = 2;
     }
 
     // Command Buffer Size. Later one we might make this dynamic or configurable.
 
     String command;
 
-    size_t argslen = 0;
+    size_t argsLen = 0;
 
-    for (auto i=argstart;  i < argc;  ++i)
-        argslen += 1 + strlen(argv[i]);
+    for (auto i=argStart;  i < argc;  ++i)
+        argsLen += 1 + strlen(argv[i]);
 
-    char* cmdline = new char [argslen];
+    char* cmdLine = new char [argsLen];
 
-    strcpy_s (cmdline, argslen, argv[argstart]);
+    strcpy_s (cmdLine, argsLen, argv[argStart]);
 
-    for (auto i=argstart+1;  i < argc;  ++i) {
-        strcat_s (cmdline, argslen, " ");
-        strcat_s (cmdline, argslen, argv[i]);
+    for (auto i=argStart+1;  i < argc;  ++i) {
+        strcat_s (cmdLine, argsLen, " ");
+        strcat_s (cmdLine, argsLen, argv[i]);
     }
 
-    char* lineptr = cmdline;
+    char* linePtr = cmdLine;
 
-    while (*lineptr) {
+    while (*linePtr) {
         // Seek to next backquote.
 
-        char* nextexpr = strchr (lineptr, '`');
+        char* nextExpr = strchr (linePtr, '`');
 
         // If no more backquote expressions, add the remainder of the command and break out.
 
-        if (!nextexpr) {
-            command += lineptr;
+        if (!nextExpr) {
+            command += linePtr;
             break;
         }
 
         // If the backquote occurs farther ahead in the command string, copy the characters leading
         // up to it.
 
-        if (nextexpr != lineptr) {
-            command.append (lineptr, nextexpr - lineptr);
+        if (nextExpr != linePtr) {
+            command.append (linePtr, nextExpr - linePtr);
         }
 
         // Set lineptr to the closing backquote.
 
-        lineptr = strchr (nextexpr+1, '`');
+        linePtr = strchr (nextExpr+1, '`');
 
         // If there's no matching backquote, then error.
 
-        if (!lineptr) {
+        if (!linePtr) {
             fprintf (stderr, "Error:  Mismatched ` quotes.\n");
             return 1;
         }
@@ -142,19 +142,19 @@ int main (int argc, char* argv[])
         // If there are two backquotes in a row, then insert a true backquote, otherwise insert the
         // value of the evaluated expression.
 
-        if (1 == (lineptr - nextexpr)) {
+        if (1 == (linePtr - nextExpr)) {
             command += "`";
         } else {
-            // At this point, lineptr points to the closing backquote. Evaluate the expression
-            // between nextexpr and lineptr.
+            // At this point, linePtr points to the closing backquote. Evaluate the expression
+            // between nextExpr and linePtr.
 
-            *lineptr = 0;
+            *linePtr = 0;
 
-            FILE* expr = _popen (++nextexpr, "rt");
+            FILE* expr = _popen (++nextExpr, "rt");
 
             if (!expr) {
                 fprintf (stderr,
-                        "Error:  Couldn't open pipe for \"%s\".", nextexpr);
+                        "Error:  Couldn't open pipe for \"%s\".", nextExpr);
                 return errno;
             }
 
@@ -174,7 +174,7 @@ int main (int argc, char* argv[])
             command.trim (" ");
         }
 
-        ++lineptr;
+        ++linePtr;
     }
 
     if (debug) {
