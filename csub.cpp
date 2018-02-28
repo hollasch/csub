@@ -2,6 +2,10 @@
 #include <process.h>
 #include <string.h>
 
+#include <string>
+
+using std::string;
+
 
 
 auto usage =
@@ -70,6 +74,14 @@ class String {
 bool debug = false;
 
 
+void trimTailWhitespace (string &s) {
+    // Removes select trailing whitespace characters from the end of the string.
+    auto lastGood = s.find_last_not_of (" \r\n\t");
+    if (lastGood != string::npos)
+        s.erase (lastGood + 1);
+}
+
+
 
 /*****************************************************************************
 Main Routine
@@ -89,9 +101,7 @@ int main (int argc, char* argv[])
         argStart = 2;
     }
 
-    // Command Buffer Size. Later one we might make this dynamic or configurable.
-
-    String command;
+    string command;
 
     size_t argsLen = 0;
 
@@ -143,7 +153,7 @@ int main (int argc, char* argv[])
         // value of the evaluated expression.
 
         if (1 == (linePtr - nextExpr)) {
-            command += "`";
+            command += '`';
         } else {
             // At this point, linePtr points to the closing backquote. Evaluate the expression
             // between nextExpr and linePtr.
@@ -165,13 +175,13 @@ int main (int argc, char* argv[])
                     break;
 
                 command += inbuff;
-                command.trim ("\r\n");
-                command += " ";
+                trimTailWhitespace (command);
+                command += ' ';
             }
 
             _pclose (expr);
 
-            command.trim (" ");
+            trimTailWhitespace (command);
         }
 
         ++linePtr;
@@ -179,8 +189,8 @@ int main (int argc, char* argv[])
 
     if (debug) {
         printf ("Resulting command is %zd characters.\n", command.length());
-        printf ("%s\n", command.value());
+        printf ("%s\n", command.c_str());
     }
 
-    return system (command.value());
+    return system (command.c_str());
 }
