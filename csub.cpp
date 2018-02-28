@@ -1,14 +1,14 @@
 #include <stdio.h>
-#include <errno.h>
 #include <process.h>
 #include <string.h>
 
 
-char usage[] =
-"\ncsub v1.0.0 / https://github.com/hollasch/csub / Steve Hollasch\n\n"
-"csub:  Perform command-substitution on a given command.\n"
-"usage: csub <command> `<expr>` <string> ... `<expr>` <string> ...\n"
-"\n";
+
+auto usage =
+    "\ncsub v1.0.1 / https://github.com/hollasch/csub / Steve Hollasch\n\n"
+    "csub:  Perform command-substitution on a given command.\n"
+    "usage: csub <command> `<expr>` <string> ... `<expr>` <string> ...\n"
+    "\n";
 
 
 class String {
@@ -20,10 +20,10 @@ class String {
         end = buff;
     }
 
-    String& Append (const char *string, size_t len) {
+    String& Append (const char* string, size_t len) {
         while ((end - buff + len) >= buff_size) {
             buff_size += blocksize;
-            char *newbuff = new char [buff_size];
+            char* newbuff = new char [buff_size];
 
             if (!newbuff) {
                 fprintf (stderr, "csub: Out of memory.\n");
@@ -42,13 +42,13 @@ class String {
         return *this;
     }
 
-    String& operator+= (const char *string) {
+    String& operator+= (const char* string) {
         return Append (string, strlen(string));
     }
 
     size_t Length (void) { return end - buff; }
 
-    void Trim (const char *trim) {
+    void Trim (const char* trim) {
         while (end > buff) {
             if (0 == strspn (end-1, trim))
                 break;
@@ -56,18 +56,17 @@ class String {
         }
     }
 
-    char *Value (void) { return buff; }
+    char* Value (void) { return buff; }
 
   private:
 
-    static const int blocksize;
+    const int blocksize = 8 << 10;
 
-    char         *buff;
+    char*         buff;
     unsigned int  buff_size;
-    char         *end;
+    char*         end;
 };
 
-const int String::blocksize = 8 << 10;
 bool debug = false;
 
 
@@ -76,7 +75,7 @@ bool debug = false;
 Main Routine
 *****************************************************************************/
 
-int main (int argc, char *argv[])
+int main (int argc, char* argv[])
 {
     if (argc < 2) {
         fprintf (stderr, usage);
@@ -90,43 +89,40 @@ int main (int argc, char *argv[])
         argstart = 2;
     }
 
-    // Command Buffer Size.  Later one we might make this dynamic or
-    // configurable.
+    // Command Buffer Size. Later one we might make this dynamic or configurable.
 
     String command;
 
     size_t argslen = 0;
 
-    int i;
-    for (i=argstart;  i < argc;  ++i)
+    for (auto i=argstart;  i < argc;  ++i)
         argslen += 1 + strlen(argv[i]);
 
-    char *cmdline = new char [argslen];
+    char* cmdline = new char [argslen];
 
     strcpy_s (cmdline, argslen, argv[argstart]);
 
-    for (i=argstart+1;  i < argc;  ++i) {
+    for (auto i=argstart+1;  i < argc;  ++i) {
         strcat_s (cmdline, argslen, " ");
         strcat_s (cmdline, argslen, argv[i]);
     }
 
-    char *lineptr = cmdline;
+    char* lineptr = cmdline;
 
     while (*lineptr) {
         // Seek to next backquote.
 
-        char *nextexpr = strchr (lineptr, '`');
+        char* nextexpr = strchr (lineptr, '`');
 
-        // If no more backquote expressions, add the remainder of the command
-        // and break out.
+        // If no more backquote expressions, add the remainder of the command and break out.
 
         if (!nextexpr) {
             command += lineptr;
             break;
         }
 
-        // If the backquote occurs farther ahead in the command string, copy
-        // the characters leading up to it.
+        // If the backquote occurs farther ahead in the command string, copy the characters leading
+        // up to it.
 
         if (nextexpr != lineptr) {
             command.Append (lineptr, nextexpr - lineptr);
@@ -143,18 +139,18 @@ int main (int argc, char *argv[])
             return 1;
         }
 
-        // If there are two backquotes in a row, then insert a true backquote,
-        // otherwise insert the value of the evaluated expression.
+        // If there are two backquotes in a row, then insert a true backquote, otherwise insert the
+        // value of the evaluated expression.
 
         if (1 == (lineptr - nextexpr)) {
             command += "`";
         } else {
-            // At this point, lineptr points to the closing backquote.
-            // Evaluate the expression between nextexpr and lineptr.
+            // At this point, lineptr points to the closing backquote. Evaluate the expression
+            // between nextexpr and lineptr.
 
             *lineptr = 0;
 
-            FILE *expr = _popen (++nextexpr, "rt");
+            FILE* expr = _popen (++nextexpr, "rt");
 
             if (!expr) {
                 fprintf (stderr,
