@@ -4,49 +4,49 @@
 
 #include <string>
 
-using std::string;
+using std::wstring;
 
 
 
 // Help Information
 static auto usage =
-    "\ncsub v1.0.1 / https://github.com/hollasch/csub / Steve Hollasch\n\n"
-    "csub:  Perform command-substitution on a given command.\n"
-    "usage: csub <command> `<expr>` <string> ... `<expr>` <string> ...\n"
-    "\n";
+    L"\ncsub v1.0.1 / https://github.com/hollasch/csub / Steve Hollasch\n\n"
+    L"csub:  Perform command-substitution on a given command.\n"
+    L"usage: csub <command> `<expr>` <string> ... `<expr>` <string> ...\n"
+    ;
 
 
 //__________________________________________________________________________________________________
-void trimTailWhitespace (string &s) {
+void trimTailWhitespace (wstring &s) {
     // Removes select trailing whitespace characters from the end of the string.
-    auto lastGood = s.find_last_not_of (" \r\n\t");
-    if (lastGood != string::npos)
+    auto lastGood = s.find_last_not_of (L" \r\n\t");
+    if (lastGood != wstring::npos)
         s.erase (lastGood + 1);
 }
 
 
 //__________________________________________________________________________________________________
-int main (int argc, char* argv[])
+int wmain (int argc, wchar_t* argv[])
 {
     bool debug = false;
 
     if (argc < 2) {
-        fprintf (stderr, usage);
+        fputws (usage, stderr);
         return 0;
     }
 
     int argStart = 1;
 
-    if (0 == _stricmp (argv[1], "-d")) {
+    if (0 == _wcsicmp (argv[1], L"-d")) {
         debug = true;
         argStart = 2;
     }
 
-    string command;    // Resulting command after substitution.
-    string cmdLine;    // Full csub command line, all arguments concatenated.
+    wstring command;    // Resulting command after substitution.
+    wstring cmdLine;    // Full csub command line, all arguments concatenated.
 
     for (auto i=argStart;  i < argc;  ++i) {
-        if (i > argStart) cmdLine += ' ';
+        if (i > argStart) cmdLine += L' ';
         cmdLine += argv[i];
     }
 
@@ -56,7 +56,7 @@ int main (int argc, char* argv[])
     while (true) {
 
         // Copy up to next backquote.
-        while ((lineIt != cmdLine.end()) && (*lineIt != '`')) {
+        while ((lineIt != cmdLine.end()) && (*lineIt != L'`')) {
             command += *lineIt++;
         }
 
@@ -66,51 +66,51 @@ int main (int argc, char* argv[])
         ++lineIt;
 
         // A double back-tick yields a backtick. After that, continue collecting the command.
-        if (*lineIt == '`') {
+        if (*lineIt == L'`') {
             command += *lineIt++;
             continue;
         }
 
-        string expression;   // Back-tick command substitution expression.
+        wstring expression;   // Back-tick command substitution expression.
 
         // Copy the sub-expression between back ticks.
-        while ((lineIt != cmdLine.end()) && (*lineIt != '`')) {
+        while ((lineIt != cmdLine.end()) && (*lineIt != L'`')) {
             expression += *lineIt++;
         }
 
         if (lineIt == cmdLine.end()) {
-            fprintf (stderr, "Error:  Mismatched ` quotes.\n");
+            fputws (L"Error:  Mismatched ` quotes.\n", stderr);
             return 1;
         }
         ++lineIt;
 
         // Execute the back-tick expression.
-        FILE* expr = _popen (expression.c_str(), "rt");
+        FILE* exprOutput = _wpopen (expression.c_str(), L"rt");
 
-        if (!expr) {
-            fprintf (stderr, "Error:  Couldn't open pipe for \"%s\".", expression.c_str());
+        if (!exprOutput) {
+            fwprintf (stderr, L"Error:  Couldn't open pipe for \"%s\".", expression.c_str());
             return errno;
         }
 
         // Read in lines of the resulting output.
-        while (!feof(expr)) {
-            char inbuff [8<<10];
+        while (!feof(exprOutput)) {
+            wchar_t inbuff [8<<10];
 
-            if (!fgets (inbuff, sizeof(inbuff), expr)) break;
+            if (!fgetws (inbuff, static_cast<int>(std::size(inbuff)), exprOutput)) break;
 
             command += inbuff;
             trimTailWhitespace (command);   // Lop off whitespace (including newlines).
-            command += ' ';
+            command += L' ';
         }
 
-        _pclose (expr);
+        _pclose (exprOutput);
 
         trimTailWhitespace (command);
     }
 
     if (debug) {
-        printf ("Expanded command: \"%s\"\n", command.c_str());
+        wprintf (L"Expanded command: \"%s\"\n", command.c_str());
     }
 
-    return system (command.c_str());
+    return _wsystem (command.c_str());
 }
