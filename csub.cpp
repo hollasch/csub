@@ -98,7 +98,12 @@ int wmain (int argc, wchar_t* argv[])
 
             if (!fgetws (inbuff, static_cast<int>(std::size(inbuff)), exprOutput)) break;
 
-            command += inbuff;
+            // Copy the line of output to the final command string, escaping special characters.
+            for (auto inPtr=inbuff;  *inPtr;  ++inPtr) {
+                if (wcschr (L"&<>()[]{}^=;!'+,`~", *inPtr)) command += '^';
+                command += *inPtr;
+            }
+
             trimTailWhitespace (command);   // Lop off whitespace (including newlines).
             command += L' ';
         }
