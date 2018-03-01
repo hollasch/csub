@@ -1,3 +1,8 @@
+//==================================================================================================
+// csub
+//
+// A Windows command-line tool to implement Unix-like command substitution (back-tick expansion).
+//==================================================================================================
 #include <string>
 
 using std::wstring;
