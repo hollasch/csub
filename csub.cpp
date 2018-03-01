@@ -8,70 +8,12 @@ using std::string;
 
 
 
-auto usage =
+// Help Information
+static auto usage =
     "\ncsub v1.0.1 / https://github.com/hollasch/csub / Steve Hollasch\n\n"
     "csub:  Perform command-substitution on a given command.\n"
     "usage: csub <command> `<expr>` <string> ... `<expr>` <string> ...\n"
     "\n";
-
-
-class String {
-  public:
-
-    String (void) {
-        buff = new char [blockSize];
-        buffSize = blockSize;
-        end = buff;
-    }
-
-    String& append (const char* string, size_t len) {
-        while ((end - buff + len) >= buffSize) {
-            buffSize += blockSize;
-            char* newBuff = new char [buffSize];
-
-            if (!newBuff) {
-                fprintf (stderr, "csub: Out of memory.\n");
-                exit (1);
-            }
-
-            memcpy (newBuff, buff, end-buff+1);
-            end = newBuff + (end-buff);
-            delete buff;
-            buff = newBuff;
-        }
-
-        memcpy (end, string, len+1);
-        end += len;
-
-        return *this;
-    }
-
-    String& operator+= (const char* string) {
-        return append (string, strlen(string));
-    }
-
-    size_t length (void) { return end - buff; }
-
-    void trim (const char* trimStr) {
-        while (end > buff) {
-            if (0 == strspn (end-1, trimStr))
-                break;
-            *--end = 0;
-        }
-    }
-
-    char* value (void) { return buff; }
-
-  private:
-
-    const int blockSize = 8 << 10;
-
-    char*         buff;
-    unsigned int  buffSize;
-    char*         end;
-};
-
-bool debug = false;
 
 
 void trimTailWhitespace (string &s) {
@@ -82,13 +24,14 @@ void trimTailWhitespace (string &s) {
 }
 
 
-
-/*****************************************************************************
-Main Routine
-*****************************************************************************/
+//--------------------------------------------------------------------------------------------------
+// Main Routine
+//--------------------------------------------------------------------------------------------------
 
 int main (int argc, char* argv[])
 {
+    bool debug = false;
+
     if (argc < 2) {
         fprintf (stderr, usage);
         return 0;
