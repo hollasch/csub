@@ -1,11 +1,6 @@
-#include <stdio.h>
-#include <process.h>
-#include <string.h>
-
 #include <string>
 
 using std::wstring;
-
 
 
 // Help Information
