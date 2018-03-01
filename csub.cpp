@@ -16,6 +16,7 @@ static auto usage =
     "\n";
 
 
+//__________________________________________________________________________________________________
 void trimTailWhitespace (string &s) {
     // Removes select trailing whitespace characters from the end of the string.
     auto lastGood = s.find_last_not_of (" \r\n\t");
@@ -24,10 +25,7 @@ void trimTailWhitespace (string &s) {
 }
 
 
-//--------------------------------------------------------------------------------------------------
-// Main Routine
-//--------------------------------------------------------------------------------------------------
-
+//__________________________________________________________________________________________________
 int main (int argc, char* argv[])
 {
     bool debug = false;
@@ -44,95 +42,74 @@ int main (int argc, char* argv[])
         argStart = 2;
     }
 
-    string command;
+    string command;    // Resulting command after substitution.
+    string cmdLine;    // Full csub command line, all arguments concatenated.
 
-    size_t argsLen = 0;
-
-    for (auto i=argStart;  i < argc;  ++i)
-        argsLen += 1 + strlen(argv[i]);
-
-    char* cmdLine = new char [argsLen];
-
-    strcpy_s (cmdLine, argsLen, argv[argStart]);
-
-    for (auto i=argStart+1;  i < argc;  ++i) {
-        strcat_s (cmdLine, argsLen, " ");
-        strcat_s (cmdLine, argsLen, argv[i]);
+    for (auto i=argStart;  i < argc;  ++i) {
+        if (i > argStart) cmdLine += ' ';
+        cmdLine += argv[i];
     }
 
-    char* linePtr = cmdLine;
+    auto lineIt = cmdLine.begin();
 
-    while (*linePtr) {
-        // Seek to next backquote.
+    // Scan through the command line.
+    while (true) {
 
-        char* nextExpr = strchr (linePtr, '`');
-
-        // If no more backquote expressions, add the remainder of the command and break out.
-
-        if (!nextExpr) {
-            command += linePtr;
-            break;
+        // Copy up to next backquote.
+        while ((lineIt != cmdLine.end()) && (*lineIt != '`')) {
+            command += *lineIt++;
         }
 
-        // If the backquote occurs farther ahead in the command string, copy the characters leading
-        // up to it.
+        // If done with command line, break out to execute.
+        if (lineIt == cmdLine.end()) break;
 
-        if (nextExpr != linePtr) {
-            command.append (linePtr, nextExpr - linePtr);
+        ++lineIt;
+
+        // A double back-tick yields a backtick. After that, continue collecting the command.
+        if (*lineIt == '`') {
+            command += *lineIt++;
+            continue;
         }
 
-        // Set lineptr to the closing backquote.
+        string expression;   // Back-tick command substitution expression.
 
-        linePtr = strchr (nextExpr+1, '`');
+        // Copy the sub-expression between back ticks.
+        while ((lineIt != cmdLine.end()) && (*lineIt != '`')) {
+            expression += *lineIt++;
+        }
 
-        // If there's no matching backquote, then error.
-
-        if (!linePtr) {
+        if (lineIt == cmdLine.end()) {
             fprintf (stderr, "Error:  Mismatched ` quotes.\n");
             return 1;
         }
+        ++lineIt;
 
-        // If there are two backquotes in a row, then insert a true backquote, otherwise insert the
-        // value of the evaluated expression.
+        // Execute the back-tick expression.
+        FILE* expr = _popen (expression.c_str(), "rt");
 
-        if (1 == (linePtr - nextExpr)) {
-            command += '`';
-        } else {
-            // At this point, linePtr points to the closing backquote. Evaluate the expression
-            // between nextExpr and linePtr.
-
-            *linePtr = 0;
-
-            FILE* expr = _popen (++nextExpr, "rt");
-
-            if (!expr) {
-                fprintf (stderr,
-                        "Error:  Couldn't open pipe for \"%s\".", nextExpr);
-                return errno;
-            }
-
-            while (!feof(expr)) {
-                char inbuff [8<<10];
-
-                if (!fgets (inbuff, sizeof(inbuff), expr))
-                    break;
-
-                command += inbuff;
-                trimTailWhitespace (command);
-                command += ' ';
-            }
-
-            _pclose (expr);
-
-            trimTailWhitespace (command);
+        if (!expr) {
+            fprintf (stderr, "Error:  Couldn't open pipe for \"%s\".", expression.c_str());
+            return errno;
         }
 
-        ++linePtr;
+        // Read in lines of the resulting output.
+        while (!feof(expr)) {
+            char inbuff [8<<10];
+
+            if (!fgets (inbuff, sizeof(inbuff), expr)) break;
+
+            command += inbuff;
+            trimTailWhitespace (command);   // Lop off whitespace (including newlines).
+            command += ' ';
+        }
+
+        _pclose (expr);
+
+        trimTailWhitespace (command);
     }
 
     if (debug) {
-        printf ("Resulting command is %zd characters.\n", command.length());
-        printf ("%s\n", command.c_str());
+        printf ("Expanded command: \"%s\"\n", command.c_str());
     }
 
     return system (command.c_str());
