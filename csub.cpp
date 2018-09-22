@@ -113,9 +113,11 @@ int wmain (int argc, wchar_t* argv[])
         trimTailWhitespace (command);
     }
 
+    auto commandString = command.c_str();
+
     if (debug) {
-        wprintf (L"Expanded command: \"%s\"\n", command.c_str());
+        wprintf (L"Expanded command: \"%s\"\n", commandString);
     }
 
-    return _wsystem (command.c_str());
+    return _wsystem (commandString);
 }
