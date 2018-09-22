@@ -12,8 +12,8 @@ ability, but the `csub` command provides a simple way to mock this for most situ
 
 Usage
 -------
-csub &lt;command&gt; [&lt;arguments&gt;] [\`&lt;sub-command&gt;\`]
-                     [&lt;arguments&gt;] [\`&lt;sub-command&gt;\`] …
+    csub <command> [<arguments>] [`<sub-command>`]
+                   [<arguments>] [`<sub-command>`] …
 
 
 Description
