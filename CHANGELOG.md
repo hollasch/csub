@@ -1,6 +1,9 @@
 Change Log for csub
 ================================================================================
 
+## v1.0.2 / 2020-05-08
+  - Converted project to use CMake build tool
+
 ## v1.0.1 / 2018-02-28
   - Converted to Visual Studio project and updated compilation
   - Lots of code cleanup
