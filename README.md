@@ -12,8 +12,7 @@ ability, but the `csub` command provides a simple way to mock this for most situ
 
 Usage
 ------
-    csub <command> [<arguments>] [`<sub-command>`]
-                   [<arguments>] [`<sub-command>`] …
+    csub [--help|-h|/?] <command> [<strings>] [`<command>`] [<strings>] [`<command>`] …
 
 
 Description

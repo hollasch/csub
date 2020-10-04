@@ -3,20 +3,27 @@
 //
 // A Windows command-line tool to implement Unix-like command substitution (back-tick expansion).
 //==================================================================================================
+
+#include <stdio.h>
 #include <string>
 
 using std::wstring;
 
 
 // Help Information
-static auto usage =
-    L"\ncsub v1.0.1 / https://github.com/hollasch/csub / Steve Hollasch\n\n"
-    L"csub:  Perform command-substitution on a given command.\n"
-    L"usage: csub <command> `<expr>` <string> ... `<expr>` <string> ...\n"
-    ;
+static auto usage = LR"(
+csub v1.1.0  2020-10-03  https://github.com/hollasch/csub
+
+csub:  Perform command-substitution on a given command.
+usage: csub <command> `<expr>` <string> ... `<expr>` <string> ...
+)";
+
+struct ProgramParameters {
+    bool printHelp { false };
+};
 
 
-//__________________________________________________________________________________________________
+//--------------------------------------------------------------------------------------------------
 void trimTailWhitespace (wstring &s) {
     // Removes select trailing whitespace characters from the end of the string.
     auto lastGood = s.find_last_not_of (L" \r\n\t");
@@ -25,14 +32,37 @@ void trimTailWhitespace (wstring &s) {
 }
 
 
-//__________________________________________________________________________________________________
+//--------------------------------------------------------------------------------------------------
+void PrintHelp() {
+    fputws(usage, stdout);
+}
+
+
+//--------------------------------------------------------------------------------------------------
+bool equal(wchar_t* a, wchar_t* b) {
+    return 0 == wcscmp(a,b);
+}
+
+
+//--------------------------------------------------------------------------------------------------
+void ParseParameters (ProgramParameters &params, int argc, wchar_t* argv[]) {
+    if (argc < 2 || equal(argv[1], L"-h") || equal(argv[1], L"--help") || equal(argv[1], L"/?")) {
+        params.printHelp = true;
+    }
+}
+
+
+//--------------------------------------------------------------------------------------------------
 int wmain (int argc, wchar_t* argv[])
 {
     bool debug = false;
+    ProgramParameters params;
 
-    if (argc < 2) {
-        fputws (usage, stderr);
-        return 0;
+    ParseParameters(params, argc, argv);
+
+    if (params.printHelp) {
+        PrintHelp();
+        exit(0);
     }
 
     int argStart = 1;
