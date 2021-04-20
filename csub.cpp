@@ -82,7 +82,7 @@ const wchar_t* toString(bool x) {
 }
 
 //--------------------------------------------------------------------------------------------------
-bool ParseParameters (ProgramParameters &params, int argc, wchar_t* argv[]) {
+bool parseParameters (ProgramParameters &params, int argc, wchar_t* argv[]) {
 
     int argi;
     for (argi=1;  argi < argc;  ++argi) {
@@ -129,7 +129,7 @@ int wmain (int argc, wchar_t* argv[])
 {
     ProgramParameters params;
 
-    if (!ParseParameters(params, argc, argv))
+    if (!parseParameters(params, argc, argv))
         exit(1);
 
     if (params.debug) {
