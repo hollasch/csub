@@ -14,7 +14,7 @@ using namespace std;
 
 // Help Information
 
-static auto version = L"csub v1.2.0 | 2021-04-19 | https://github.com/hollasch/csub";
+static auto version = L"csub v1.2.1 | 2021-04-20 | https://github.com/hollasch/csub";
 
 static auto help = LR"(
 csub:  Command-substitution on Windows
@@ -82,7 +82,7 @@ const wchar_t* toString(bool x) {
 }
 
 //--------------------------------------------------------------------------------------------------
-bool parseParameters (ProgramParameters &params, int argc, wchar_t* argv[]) {
+void parseParameters (ProgramParameters &params, int argc, wchar_t* argv[]) {
 
     int argi;
     for (argi=1;  argi < argc;  ++argi) {
@@ -95,7 +95,7 @@ bool parseParameters (ProgramParameters &params, int argc, wchar_t* argv[]) {
 
         if (equal(arg, L"-h") || equal(arg, L"--help")) {
             params.help = true;
-            return true;
+            return;
         }
 
         if (equal(arg, L"-v") || equal(arg, L"--version")) {
@@ -119,8 +119,6 @@ bool parseParameters (ProgramParameters &params, int argc, wchar_t* argv[]) {
 
         params.command += argv[argi];
     }
-
-    return true;
 }
 
 
@@ -129,8 +127,7 @@ int wmain (int argc, wchar_t* argv[])
 {
     ProgramParameters params;
 
-    if (!parseParameters(params, argc, argv))
-        exit(1);
+    parseParameters(params, argc, argv);
 
     if (params.debug) {
         wcout << L"params.help        : " << toString(params.help) << L'\n';
