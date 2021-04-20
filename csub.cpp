@@ -4,22 +4,56 @@
 // A Windows command-line tool to implement Unix-like command substitution (back-tick expansion).
 //==================================================================================================
 
+#include <iostream>
 #include <stdio.h>
 #include <string>
+#include <vector>
 
-using std::wstring;
+using namespace std;
 
 
 // Help Information
-static auto usage = LR"(
-csub v1.1.0  2020-10-03  https://github.com/hollasch/csub
 
-csub:  Perform command-substitution on a given command.
-usage: csub <command> `<expr>` <string> ... `<expr>` <string> ...
+static auto version = L"csub v1.2.0 | 2021-04-14 | https://github.com/hollasch/csub";
+
+static auto usage = LR"(
+csub:  Command-substitution on Windows
+usage: csub [options] <command> [`<expr>`|<string>]...
+
+Description
+    csub runs the given command with expanded arguments from the command line.
+
+    Any string enclosed in back quotes is executed, its output concatenated with
+    single spaces, and the result inserted back into the full command. Multiple
+    backtick expressions are supported.
+
+    Arguments not enclosed in back quotes are included in the command verbatim.
+
+Example
+    csub echo Text files: `dir /b *.txt`
+        Produces the output "Text files: CMakeLists.txt LICENSE.txt".
+
+    csub copy `where notes.cmd` %TEMP%
+        Locate script notes.cmd and copy it into the %TEMP% directory.
+
+Options
+    Note: Options must be supplied before expressions and literal arguments.
+
+    -d, --debug
+        Print debugging information.
+
+    -h, --help
+        Print help information.
 )";
 
+
+// Command Options
+
 struct ProgramParameters {
-    bool printHelp { false };
+    bool help  { false };
+    bool debug { false };
+
+    wstring command;
 };
 
 
@@ -34,7 +68,7 @@ void trimTailWhitespace (wstring &s) {
 
 //--------------------------------------------------------------------------------------------------
 void PrintHelp() {
-    fputws(usage, stdout);
+    wcout << usage << L'\n' << version << L'\n';
 }
 
 
@@ -45,74 +79,99 @@ bool equal(wchar_t* a, wchar_t* b) {
 
 
 //--------------------------------------------------------------------------------------------------
-void ParseParameters (ProgramParameters &params, int argc, wchar_t* argv[]) {
-    if (argc < 2 || equal(argv[1], L"-h") || equal(argv[1], L"--help") || equal(argv[1], L"/?")) {
-        params.printHelp = true;
+bool ParseParameters (ProgramParameters &params, int argc, wchar_t* argv[]) {
+
+    int argi;
+    for (argi=1;  argi < argc;  ++argi) {
+        auto arg = argv[argi];
+
+        if (equal(arg, L"-h") || equal(arg, L"--help")) {
+            params.help = true;
+            return true;
+        }
+
+        if (equal(arg, L"-d") || equal(arg, L"--debug")) {
+            params.debug = true;
+            continue;
+        }
+
+        break;
     }
+
+    // Build up command string
+
+    params.command.clear();
+    auto firstChunk = true;
+
+    for (; argi < argc; ++argi) {
+        if (firstChunk)
+            firstChunk = false;
+        else
+            params.command += L' ';
+
+        params.command += argv[argi];
+    }
+
+    return true;
 }
 
 
 //--------------------------------------------------------------------------------------------------
 int wmain (int argc, wchar_t* argv[])
 {
-    bool debug = false;
     ProgramParameters params;
 
-    ParseParameters(params, argc, argv);
+    if (!ParseParameters(params, argc, argv))
+        exit(1);
 
-    if (params.printHelp) {
+    if (params.debug) {
+        wcout << L"params.help   : " << (params.help ? "true" : "false") << L'\n';
+        wcout << L"params.debug  : " << (params.debug ? "true" : "false") << L'\n';
+        wcout << L"params.command: " << params.command << L"'\n\n";
+    }
+
+    if (params.help || params.command.empty()) {
         PrintHelp();
         exit(0);
     }
 
     int argStart = 1;
 
-    if (0 == _wcsicmp (argv[1], L"-d")) {
-        debug = true;
-        argStart = 2;
-    }
-
     wstring command;    // Resulting command after substitution.
-    wstring cmdLine;    // Full csub command line, all arguments concatenated.
 
-    for (auto i=argStart;  i < argc;  ++i) {
-        if (i > argStart) cmdLine += L' ';
-        cmdLine += argv[i];
-    }
-
-    auto lineIt = cmdLine.begin();
+    auto cmdIt = params.command.begin();
 
     // Scan through the command line.
     while (true) {
 
         // Copy up to next backquote.
-        while ((lineIt != cmdLine.end()) && (*lineIt != L'`')) {
-            command += *lineIt++;
+        while ((cmdIt != params.command.end()) && (*cmdIt != L'`')) {
+            command += *cmdIt++;
         }
 
         // If done with command line, break out to execute.
-        if (lineIt == cmdLine.end()) break;
+        if (cmdIt == params.command.end()) break;
 
-        ++lineIt;
+        ++cmdIt;
 
         // A double back-tick yields a backtick. After that, continue collecting the command.
-        if (*lineIt == L'`') {
-            command += *lineIt++;
+        if (*cmdIt == L'`') {
+            command += *cmdIt++;
             continue;
         }
 
         wstring expression;   // Back-tick command substitution expression.
 
         // Copy the sub-expression between back ticks.
-        while ((lineIt != cmdLine.end()) && (*lineIt != L'`')) {
-            expression += *lineIt++;
+        while ((cmdIt != params.command.end()) && (*cmdIt != L'`')) {
+            expression += *cmdIt++;
         }
 
-        if (lineIt == cmdLine.end()) {
+        if (cmdIt == params.command.end()) {
             fputws (L"Error:  Mismatched ` quotes.\n", stderr);
             return 1;
         }
-        ++lineIt;
+        ++cmdIt;
 
         // Execute the back-tick expression.
         FILE* exprOutput = _wpopen (expression.c_str(), L"rt");
@@ -145,8 +204,8 @@ int wmain (int argc, wchar_t* argv[])
 
     auto commandString = command.c_str();
 
-    if (debug) {
-        wprintf (L"Expanded command: \"%s\"\n", commandString);
+    if (params.debug) {
+        wcout << L"Expanded command: " << commandString << "\n----------------------------------------\n\n";
     }
 
     return _wsystem (commandString);
