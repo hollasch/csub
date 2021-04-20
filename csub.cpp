@@ -71,7 +71,7 @@ void trimTailWhitespace (wstring &s) {
 
 
 //--------------------------------------------------------------------------------------------------
-bool equal(wchar_t* a, wchar_t* b) {
+bool equal(const wchar_t* a, const wchar_t* b) {
     return 0 == wcscmp(a,b);
 }
 
