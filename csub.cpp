@@ -16,7 +16,7 @@ using namespace std;
 
 static auto version = L"csub v1.2.0 | 2021-04-19 | https://github.com/hollasch/csub";
 
-static auto usage = LR"(
+static auto help = LR"(
 csub:  Command-substitution on Windows
 usage: csub [options] <command> [`<expr>`|<string>]...
 
@@ -145,7 +145,7 @@ int wmain (int argc, wchar_t* argv[])
     }
 
     if (params.help || params.command.empty()) {
-        wcout << usage << L'\n' << version << L'\n';
+        wcout << help << L'\n' << version << L'\n';
         exit(0);
     }
 
