@@ -14,7 +14,7 @@ using namespace std;
 
 // Help Information
 
-static auto version = L"csub v1.2.0 | 2021-04-14 | https://github.com/hollasch/csub";
+static auto version = L"csub v1.2.0 | 2021-04-19 | https://github.com/hollasch/csub";
 
 static auto usage = LR"(
 csub:  Command-substitution on Windows
@@ -44,14 +44,18 @@ Options
 
     -h, --help
         Print help information.
+
+    -v, --version
+        Print version information.
 )";
 
 
 // Command Options
 
 struct ProgramParameters {
-    bool help  { false };
-    bool debug { false };
+    bool help         { false };
+    bool printVersion { false };
+    bool debug        { false };
 
     wstring command;
 };
@@ -67,16 +71,15 @@ void trimTailWhitespace (wstring &s) {
 
 
 //--------------------------------------------------------------------------------------------------
-void PrintHelp() {
-    wcout << usage << L'\n' << version << L'\n';
-}
-
-
-//--------------------------------------------------------------------------------------------------
 bool equal(wchar_t* a, wchar_t* b) {
     return 0 == wcscmp(a,b);
 }
 
+
+//--------------------------------------------------------------------------------------------------
+const wchar_t* toString(bool x) {
+    return x ? L"true" : L"false";
+}
 
 //--------------------------------------------------------------------------------------------------
 bool ParseParameters (ProgramParameters &params, int argc, wchar_t* argv[]) {
@@ -85,17 +88,22 @@ bool ParseParameters (ProgramParameters &params, int argc, wchar_t* argv[]) {
     for (argi=1;  argi < argc;  ++argi) {
         auto arg = argv[argi];
 
-        if (equal(arg, L"-h") || equal(arg, L"--help")) {
-            params.help = true;
-            return true;
-        }
-
         if (equal(arg, L"-d") || equal(arg, L"--debug")) {
             params.debug = true;
             continue;
         }
 
-        break;
+        if (equal(arg, L"-h") || equal(arg, L"--help")) {
+            params.help = true;
+            return true;
+        }
+
+        if (equal(arg, L"-v") || equal(arg, L"--version")) {
+            params.printVersion = true;
+            continue;
+        }
+
+        break; // End of options
     }
 
     // Build up command string
@@ -125,13 +133,19 @@ int wmain (int argc, wchar_t* argv[])
         exit(1);
 
     if (params.debug) {
-        wcout << L"params.help   : " << (params.help ? "true" : "false") << L'\n';
-        wcout << L"params.debug  : " << (params.debug ? "true" : "false") << L'\n';
-        wcout << L"params.command: " << params.command << L"'\n\n";
+        wcout << L"params.help        : " << toString(params.help) << L'\n';
+        wcout << L"params.debug       : " << toString(params.debug) << L'\n';
+        wcout << L"params.printVersion: " << toString(params.printVersion) << L'\n';
+        wcout << L"params.command     : " << params.command << L"'\n\n";
+    }
+
+    if (params.printVersion) {
+        wcout << version << L'\n';
+        exit(0);
     }
 
     if (params.help || params.command.empty()) {
-        PrintHelp();
+        wcout << usage << L'\n' << version << L'\n';
         exit(0);
     }
 
