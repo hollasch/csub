@@ -45,7 +45,10 @@ Options
     -h, --help
         Print help information.
 
-    -v, --version
+    -v, --verbose
+        Echo expanded command prior to execution.
+
+    --version
         Print version information.
 )";
 
@@ -53,9 +56,10 @@ Options
 // Command Options
 
 struct ProgramParameters {
+    bool debug        { false };
+    bool verbose      { false };
     bool help         { false };
     bool printVersion { false };
-    bool debug        { false };
 
     wstring command;
 };
@@ -98,8 +102,13 @@ void parseParameters (ProgramParameters &params, int argc, wchar_t* argv[]) {
             return;
         }
 
-        if (equal(arg, L"-v") || equal(arg, L"--version")) {
+        if (equal(arg, L"--version")) {
             params.printVersion = true;
+            continue;
+        }
+
+        if (equal(arg, L"-v") || equal(arg, L"--verbose")) {
+            params.verbose = true;
             continue;
         }
 
@@ -217,6 +226,10 @@ int wmain (int argc, wchar_t* argv[])
 
     if (params.debug) {
         wcout << L"Expanded command: " << commandString << "\n----------------------------------------\n\n";
+    }
+
+    if (params.verbose) {
+        wcout << commandString << "\n\n";
     }
 
     return _wsystem (commandString);
