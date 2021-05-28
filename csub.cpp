@@ -14,7 +14,7 @@ using namespace std;
 
 // Help Information
 
-static auto version = L"csub v1.2.1 | 2021-04-20 | https://github.com/hollasch/csub";
+static auto version = L"csub 1.2.1 | 2021-04-20 | https://github.com/hollasch/csub";
 
 static auto help = LR"(
 csub:  Command-substitution on Windows
