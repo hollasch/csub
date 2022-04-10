@@ -14,7 +14,7 @@ using namespace std;
 
 // Help Information
 
-static auto version = L"csub 1.2.1 | 2021-04-20 | https://github.com/hollasch/csub";
+static auto version = L"csub 1.2.0-alpha.1 | 2022-04-09 | https://github.com/hollasch/csub";
 
 static auto help = LR"(
 csub:  Command-substitution on Windows
@@ -229,7 +229,7 @@ int wmain (int argc, wchar_t* argv[])
     }
 
     if (params.verbose) {
-        wcout << commandString << "\n\n";
+        wcout << commandString << "\n";
     }
 
     return _wsystem (commandString);
