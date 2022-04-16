@@ -1,7 +1,7 @@
 Change Log for csub
 ================================================================================
 
-# v1.2.0  (2022-04-09)
+# v1.2.0  (2022-04-16)
 
   - New `--version` command option
   - New `--verbose` command option
