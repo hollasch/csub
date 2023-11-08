@@ -1,6 +1,12 @@
 Change Log for csub
 ================================================================================
 
+# v1.2.1  (2023-11-08)
+
+  - Add help information about requirement to quote shell operators such as `|`.
+  - Add command argument output for `--debug` option.
+
+----------------------------------------------------------------------------------------------------
 # v1.2.0  (2022-04-16)
 
   - New `--version` command option

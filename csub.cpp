@@ -14,7 +14,7 @@ using namespace std;
 
 // Help Information
 
-static auto version = L"csub 1.2.0 | 2022-04-16 | https://github.com/hollasch/csub";
+static auto version = L"csub 1.2.1 | 2023-11-08 | https://github.com/hollasch/csub";
 
 static auto help = LR"(
 csub:  Command-substitution on Windows
@@ -23,11 +23,15 @@ usage: csub [options] <command> [`<expr>`|<string>]...
 Description
     csub runs the given command with expanded arguments from the command line.
 
-    Any string enclosed in back quotes is executed, its output concatenated with
-    single spaces, and the result inserted back into the full command. Multiple
-    backtick expressions are supported.
+    Any string enclosed in back quotes is executed, its output concatenated
+    with single spaces, and the result inserted back into the full command.
+    Multiple backtick expressions are supported.
 
     Arguments not enclosed in back quotes are included in the command verbatim.
+
+    If a back-quoted expression includes special shell operators such as '|',
+    they must be escaped. Alternatively, you can enclose the entire back quoted
+    expression in double quotes.
 
 Example
     csub echo Text files: `dir /b *.txt`
@@ -35,6 +39,15 @@ Example
 
     csub copy `where notes.cmd` %TEMP%
         Locate script notes.cmd and copy it into the %TEMP% directory.
+
+    csub echo `dir /b | findstr README`
+        Error: The pipe operator must be escaped.
+
+    csub echo `dir /b ^| findstr README`
+        Produces the output "README.md" if that file exists.
+
+    csub echo "`dir /b | findstr README`"
+        Produces the output "README.md" if that file exists.
 
 Options
     Note: Options must be supplied before expressions and literal arguments.
@@ -139,10 +152,16 @@ int wmain (int argc, wchar_t* argv[])
     parseParameters(params, argc, argv);
 
     if (params.debug) {
+        wcout << L"Arguments:\n";
+        for (int argi=0;  argi < argc;  ++argi) {
+            wcout << L"argv[" << argi << L"]: " << argv[argi] << L'\n';
+        }
+        wcout << L'\n';
+
         wcout << L"params.help        : " << toString(params.help) << L'\n';
         wcout << L"params.debug       : " << toString(params.debug) << L'\n';
         wcout << L"params.printVersion: " << toString(params.printVersion) << L'\n';
-        wcout << L"params.command     : " << params.command << L"'\n\n";
+        wcout << L"params.command     : " << L'{' << params.command << L"}\n\n";
     }
 
     if (params.printVersion) {
