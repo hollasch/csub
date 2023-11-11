@@ -14,7 +14,7 @@ using namespace std;
 
 // Help Information
 
-static auto version = L"csub 1.2.1 | 2023-11-08 | https://github.com/hollasch/csub";
+static auto version = L"csub 1.2.2 | 2023-11-09 | https://github.com/hollasch/csub";
 
 static auto help = LR"(
 csub:  Command-substitution on Windows
@@ -107,6 +107,7 @@ void parseParameters (ProgramParameters &params, int argc, wchar_t* argv[]) {
 
         if (equal(arg, L"-d") || equal(arg, L"--debug")) {
             params.debug = true;
+            params.verbose = true;
             continue;
         }
 
